@@ -14,7 +14,7 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-#include "arrow/timestamp_converter.h"
+#include "arrow/util/timestamp_converter.h"
 
 #include <chrono>
 #include <cstring>
@@ -24,7 +24,7 @@
 #include "arrow/util/make_unique.h"
 #include "arrow/util/parsing.h"
 namespace arrow {
-FormattedTimestampConverter::FormattedTimestampConverter(const std::string& format) : format_(format) {}
+StrptimeTimestampParser::StrptimeTimestampParser(const std::string& format) : format_(format) {}
 
 int64_t ConvertTimePoint(const std::shared_ptr<DataType>& type, arrow_vendored::date::sys_time<std::chrono::seconds> tp) {
   auto duration = tp.time_since_epoch();
@@ -41,7 +41,7 @@ int64_t ConvertTimePoint(const std::shared_ptr<DataType>& type, arrow_vendored::
   return 0;
 }
 
-bool FormattedTimestampConverter::operator()(const std::shared_ptr<DataType>& type, const char* s,
+bool StrptimeTimestampParser::operator()(const std::shared_ptr<DataType>& type, const char* s,
                                    size_t length, value_type* out) const{
   arrow_vendored::date::sys_time<std::chrono::seconds> time_point;
   if (std::stringstream({s, length}) >> arrow_vendored::date::parse(format_, time_point)) {
@@ -51,7 +51,7 @@ bool FormattedTimestampConverter::operator()(const std::shared_ptr<DataType>& ty
   return false;
 }
 
-std::unique_ptr<TimestampConverter> FormattedTimestampConverter::Make(const std::string& format) {
-  return internal::make_unique<FormattedTimestampConverter>(format);
+std::unique_ptr<TimestampConverter> StrptimeTimestampParser::Make(const std::string& format) {
+  return internal::make_unique<StrptimeTimestampParser>(format);
 }
 }  // namespace arrow
